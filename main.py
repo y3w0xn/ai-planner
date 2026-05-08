@@ -18,44 +18,46 @@ class StudyTask(BaseModel):
     days_left: int
     concentration: int
 
+# main.py의 로직 부분만 이렇게 수정해 보세요
+
 @app.post("/generate-plan")
 async def create_plan(task: StudyTask):
     daily_pages = task.total_pages / task.days_left
     plan = []
     total_progress = 0
     
-    # 1. 집중도별 맞춤 학습 전략 메시지 & 복습 주기 설정
     if task.concentration >= 9:
         strategy = {
-            "title": "🚀 고효율 파고들기 모드",
-            "tip": "딥러닝 논문이나 물리 수식 유도처럼 깊은 사고가 필요한 공부에 최적입니다. 50분 집중 후 10분 휴식하는 뽀모도로 기법을 추천합니다.",
-            "review_intervals": [3, 7] # 고집중은 복습 주기를 큼직하게
+            "title": "🚀 고효율 전략: '장기 기억' 전환 모드",
+            "tip": "이미 이해도가 높으므로 7일 전 내용만 가볍게 훑으세요. 남는 에너지는 오늘 진도의 '심화 학습'에 쏟으십시오.",
+            "review_intervals": [7] # 최상일 땐 굳이 어제껄 볼 필요 없음 (장기 기억 강화)
         }
     elif task.concentration >= 6:
         strategy = {
-            "title": "⚖️ 꾸준한 밸런스 모드",
-            "tip": "진도와 복습의 비율을 7:3으로 유지하세요. 아는 내용을 백지에 써보는 '능동적 회상'법이 가장 효과적입니다.",
-            "review_intervals": [1, 3, 7] # 표준 주기
+            "title": "⚖️ 표준 전략: '중요 지점' 복습 모드",
+            "tip": "어제 내용과 3일 전 내용을 복습하세요. 이 주기가 망각을 막는 가장 효율적인 구간입니다.",
+            "review_intervals": [1, 3] # 표준 주기는 2개로 제한
         }
     else:
         strategy = {
-            "title": "🐢 거북이 스파르타 모드",
-            "tip": "집중력이 낮을 땐 '분량'보다 '완성도'입니다. 20분 공부 후 5분 휴식하며, 복습이 벅차면 '어제 내용'만이라도 완벽히 보세요.",
-            "review_intervals": [1, 2] # 부하를 줄이기 위해 짧은 주기만 반복
+            "title": "🐢 생존 전략: '직전 내용' 사수 모드",
+            "tip": "복습이 밀리면 의욕이 꺾입니다. 오늘은 오직 '어제 배운 것'만 복습하고 나머지는 과감히 버리세요!",
+            "review_intervals": [1] # 낮을 땐 단 하나만 제대로 복습
         }
 
-    # 2. 날짜별 계획 생성
     for i in range(task.days_left):
         current_date = datetime.now() + timedelta(days=i)
         
-        # 복습 항목 계산
+        # [핵심] 집중도에 따라 설정된 간격 중 '가장 중요한 것'만 추출
         reviews = []
         for interval in strategy["review_intervals"]:
             if i >= interval:
                 reviews.append(f"{i - interval + 1}일차")
+        
+        # 만약 복습이 너무 많아지면 최근 2개만 남김 (안전장치)
+        reviews = reviews[-2:] 
 
         total_progress += (100 / task.days_left)
-        
         plan.append({
             "day": i + 1,
             "date": current_date.strftime("%Y-%m-%d"),
@@ -64,11 +66,7 @@ async def create_plan(task: StudyTask):
             "progress": min(100, round(total_progress, 1))
         })
         
-    return {
-        "subject": task.subject,
-        "strategy": strategy,
-        "plan": plan
-    }
+    return {"subject": task.subject, "strategy": strategy, "plan": plan}
 
 if __name__ == "__main__":
     import uvicorn

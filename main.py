@@ -30,22 +30,28 @@ async def read_root():
 
 @app.post("/generate-plan")
 async def create_plan(task: StudyTask):
+    # 집중도(concentration)를 가중치로 활용
+    # 10(높음) -> 분량 그대로, 4(낮음) -> 복습 주기를 더 촘촘하게 설정
+    
     daily_pages = task.total_pages / task.days_left
     plan = []
-    
-    # 누적 달성률 계산을 위한 변수
     total_progress = 0
     
     for i in range(task.days_left):
         current_date = datetime.now() + timedelta(days=i)
         
-        # 복습 주기 계산 (망각 곡선 이론 적용)
-        # 1일 뒤, 3일 뒤, 7일 뒤, 15일 뒤... 순차적 복습 배치
+        # 집중도 스타일에 따른 복습 주기 설정
+        if task.concentration >= 9:
+            review_intervals = [3, 7] # 고집중: 굵직하게 복습
+        elif task.concentration >= 6:
+            review_intervals = [1, 3, 7] # 보통: 표준 주기
+        else:
+            review_intervals = [1, 2, 3, 5, 7] # 낮음: 망각 방지를 위해 아주 자주 복습
+
         reviews = []
-        review_intervals = [1, 3, 7, 15, 30]
         for interval in review_intervals:
             if i >= interval:
-                reviews.append(f"{i - interval + 1}일차 내용 복습")
+                reviews.append(f"{i - interval + 1}일차 내용")
 
         total_progress += (100 / task.days_left)
         
@@ -54,7 +60,7 @@ async def create_plan(task: StudyTask):
             "date": current_date.strftime("%Y-%m-%d"),
             "study": f"{round(daily_pages, 1)}p",
             "review": reviews,
-            "progress": min(100, round(total_progress, 1)) # 누적 성취도
+            "progress": min(100, round(total_progress, 1))
         })
         
     return {"subject": task.subject, "plan": plan}

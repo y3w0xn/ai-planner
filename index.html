@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 개인 맞춤형 플래너</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --bg-color: #F5F7FA;
+            --card-bg: #FFFFFF;
+            --text-main: #333;
+        }
+
+        body { 
+            font-family: 'Pretendard', -apple-system, sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container { 
+            max-width: 700px; 
+            width: 100%;
+            background: var(--card-bg); 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+        }
+
+        h2 { text-align: center; color: var(--primary-color); margin-bottom: 30px; }
+
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9em; }
+        
+        input, select { 
+            width: 100%; padding: 12px; border: 1px solid #E1E4E8; 
+            border-radius: 10px; box-sizing: border-box; font-size: 1em;
+        }
+
+        button { 
+            width: 100%; padding: 15px; background: var(--primary-color); 
+            color: white; border: none; border-radius: 10px; 
+            font-size: 1.1em; font-weight: bold; cursor: pointer;
+            transition: background 0.3s ease; margin-top: 10px;
+        }
+
+        button:hover { background: #357ABD; }
+
+        .result-area { margin-top: 40px; }
+        
+        .plan-card { 
+            background: #fdfdfd; 
+            border: 1px solid #edf2f7;
+            padding: 20px; 
+            border-radius: 15px; 
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+
+        .plan-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+        .progress-container {
+            background: #EDF2F7;
+            height: 10px;
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #4A90E2, #63B3ED);
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: #EBF8FF;
+            color: #2B6CB0;
+            border-radius: 5px;
+            font-size: 0.8em;
+            margin-right: 5px;
+            margin-top: 5px;
+        }
+
+        .review-section { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🚀 AI 학습 플래너</h2>
+        
+        <div class="input-group">
+            <label>과목명</label>
+            <input type="text" id="subject" placeholder="예: 일반물리학 (전자기학)">
+        </div>
+
+        <div class="input-group">
+            <label>총 분량 (페이지 또는 강의 수)</label>
+            <input type="number" id="total_pages" placeholder="예: 150">
+        </div>
+
+        <div class="input-group">
+            <label>남은 기간 (일)</label>
+            <input type="number" id="days_left" placeholder="예: 14">
+        </div>
+
+        <div class="input-group">
+            <label>나의 집중도 스타일</label>
+            <select id="concentration">
+                <option value="10">매우 높음 (단기 폭발형)</option>
+                <option value="7" selected>보통 (꾸준한 스타일)</option>
+                <option value="4">낮음 (잦은 복습 필요)</option>
+            </select>
+        </div>
+
+        <button onclick="generatePlan()">나만의 학습 계획 생성</button>
+
+        <div id="result" class="result-area">
+            <!-- 결과가 여기에 렌더링됩니다 -->
+        </div>
+    </div>
+
+    <script>
+        async function generatePlan() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = "<p style='text-align:center;'>AI가 최적의 경로를 계산 중입니다...</p>";
+
+            const data = {
+                subject: document.getElementById('subject').value,
+                total_pages: parseInt(document.getElementById('total_pages').value),
+                days_left: parseInt(document.getElementById('days_left').value),
+                concentration: parseInt(document.getElementById('concentration').value)
+            };
+
+            try {
+                const response = await fetch('/generate-plan', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                let html = `<h3>📊 ${result.subject} 학습 분석 리포트</h3>`;
+                
+                result.plan.forEach(day => {
+                    const reviewHtml = day.review.length > 0 
+                        ? day.review.map(r => `<span class="badge">♻️ ${r}</span>`).join('') 
+                        : '<span style="color:#999; font-size:0.8em;">신규 개념 습득에 집중하세요</span>';
+
+                    html += `
+                        <div class="plan-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong style="font-size:1.1em;">Day ${day.day}</strong>
+                                <span style="font-size:0.85em; color:#718096;">${day.date}</span>
+                            </div>
+                            
+                            <div class="progress-container">
+                                <div class="progress-bar" style="width: ${day.progress}%"></div>
+                            </div>
+                            <div style="text-align:right; font-size:0.8em; color:#4A90E2; margin-bottom:10px;">
+                                목표 달성률: ${day.progress}%
+                            </div>
+
+                            <div style="margin-bottom: 8px;">
+                                📖 <b>오늘의 진도:</b> <span style="color:#2D3748;">${day.study}</span>
+                            </div>
+                            
+                            <div class="review-section">
+                                <div style="font-size:0.85em; font-weight:bold; margin-bottom:5px;">📋 맞춤 복습 리스트:</div>
+                                ${reviewHtml}
+                            </div>
+                        </div>`;
+                });
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = "<p style='color:red;'>서버 연결에 실패했습니다. 파이썬 서버가 켜져 있는지 확인하세요!</p>";
+            }
+        }
+    </script>
+</body>
+</html>

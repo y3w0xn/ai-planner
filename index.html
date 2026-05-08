@@ -3,59 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 연구 피드백 플래너</title>
+    <title>AI 멀티 과목 연구 플래너</title>
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'></script>
     <style>
         :root { --primary: #4A90E2; --success: #48BB78; --warning: #F6AD55; --danger: #F56565; --bg: #F8FAFC; }
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); padding: 20px; color: #2D3748; }
-        .container { max-width: 950px; margin: 0 auto; background: #FFF; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .container { max-width: 1000px; margin: 0 auto; background: #FFF; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         
-        /* 상단 레이아웃 */
-        .header-info { text-align: center; margin-bottom: 30px; }
-        .strategy-card { background: #EBF8FF; padding: 15px; border-radius: 12px; margin: 20px 0; border-left: 5px solid var(--primary); display: none; }
-        
-        /* 진행도 바 */
-        .progress-container { margin: 20px 0; background: #EDF2F7; border-radius: 20px; height: 25px; overflow: hidden; position: relative; display: none; }
-        .progress-bar { background: linear-gradient(90deg, #4299E1, #48BB78); height: 100%; width: 0%; transition: 0.5s ease; }
-        .progress-text { position: absolute; width: 100%; text-align: center; font-size: 0.85rem; font-weight: bold; line-height: 25px; color: #2D3748; }
+        /* 탭 스타일 */
+        .subject-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 2px solid #E2E8F0; padding-bottom: 10px; }
+        .tab { padding: 10px 20px; background: #EDF2F7; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 0.9rem; }
+        .tab.active { background: var(--primary); color: white; }
+        .tab-progress { font-size: 0.75rem; opacity: 0.8; margin-left: 5px; }
 
-        .input-box { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; padding: 20px; background: #F7FAFC; border-radius: 15px; }
+        .input-box { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; padding: 20px; background: #F7FAFC; border-radius: 15px; border: 1px dashed #CBD5E0; }
         input, select, button { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #E2E8F0; box-sizing: border-box; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; grid-column: span 2; }
+        .btn-add { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; grid-column: span 2; }
         
+        .strategy-card { background: #EBF8FF; padding: 15px; border-radius: 12px; margin-bottom: 20px; border-left: 5px solid var(--primary); }
+        .progress-container { margin: 15px 0; background: #EDF2F7; border-radius: 20px; height: 20px; overflow: hidden; position: relative; }
+        .progress-bar { background: linear-gradient(90deg, #4299E1, #48BB78); height: 100%; width: 0%; transition: 0.5s; }
+        .progress-text { position: absolute; width: 100%; text-align: center; font-size: 0.75rem; font-weight: bold; line-height: 20px; }
+
         .plan-list { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .day-card { border: 1px solid #EDF2F7; padding: 15px; border-radius: 12px; background: #FFF; position: relative; transition: 0.3s; }
+        .day-card { border: 1px solid #EDF2F7; padding: 15px; border-radius: 12px; background: #FFF; position: relative; }
         .status-o { background: #F0FFF4; border-color: var(--success); }
         .status-tri { background: #FFFAF0; border-color: var(--warning); }
         .status-x { background: #FFF5F5; border-color: var(--danger); }
         
-        .status-mark { position: absolute; top: 10px; right: 20px; font-size: 1.8rem; font-weight: bold; }
         .btn-group { display: flex; gap: 5px; margin-top: 15px; }
-        .btn-group button { padding: 8px; font-size: 0.8rem; grid-column: auto; }
-        .update-input { display: none; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 8px; }
-        
+        .btn-group button { padding: 6px; font-size: 0.75rem; grid-column: auto; }
         #calendar { margin-bottom: 30px; }
+        .update-input { display: none; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header-info">
-            <h2>🔬 AI 지능형 피드백 플래너</h2>
-            <div id="strategy-card" class="strategy-card">
-                <strong id="strategy-title"></strong><br>
-                <span id="strategy-tip"></span>
-            </div>
-            <div id="progress-container" class="progress-container">
-                <div id="progress-bar" class="progress-bar"></div>
-                <div id="progress-text" class="progress-text">현재 진행도: 0%</div>
-            </div>
-        </div>
-
+        <h2 style="text-align: center;">🔬 AI 멀티 과목 연구 플래너</h2>
+        
+        <!-- 과목 추가 입력창 -->
         <div class="input-box">
-            <div><label>과목</label><input type="text" id="subject" value="데이터 분석 연구"></div>
-            <div><label>총 페이지</label><input type="number" id="total_pages" value="100"></div>
-            <div><label>기간(일)</label><input type="number" id="days_left" value="7"></div>
+            <div><label>새 과목명</label><input type="text" id="subject" placeholder="예: 머신러닝 논문"></div>
+            <div><label>총 페이지</label><input type="number" id="total_pages" value="50"></div>
+            <div><label>기간(일)</label><input type="number" id="days_left" value="5"></div>
             <div><label>집중도</label>
                 <select id="concentration">
                     <option value="10">최상 (단기완성)</option>
@@ -63,27 +54,44 @@
                     <option value="4">낮음 (천천히)</option>
                 </select>
             </div>
-            <button onclick="generatePlan()">새로운 플랜 생성</button>
+            <button class="btn-add" onclick="generatePlan()">+ 새로운 과목 플랜 추가</button>
         </div>
 
-        <div id="calendar"></div>
-        <div id="result" class="plan-list"></div>
+        <!-- 과목 탭 영역 -->
+        <div id="subject-tabs" class="subject-tabs"></div>
+
+        <!-- 현재 선택된 과목 상세 정보 -->
+        <div id="active-content" style="display:none;">
+            <div id="strategy-card" class="strategy-card">
+                <strong id="strategy-title"></strong>: <span id="strategy-tip"></span>
+            </div>
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
+                <div id="progress-text" class="progress-text">0%</div>
+            </div>
+            <div id="calendar"></div>
+            <div id="result" class="plan-list"></div>
+        </div>
     </div>
 
     <script>
+        let subjects = {}; // 모든 과목 데이터를 담는 객체
+        let activeSubject = null;
         let calendar;
-        let currentPlan = [];
-        let totalTargetPages = 0;
 
         async function generatePlan() {
+            const subjectName = document.getElementById('subject').value;
+            if(!subjectName || subjects[subjectName]) {
+                alert("과목명을 입력해주세요 (중복 불가)");
+                return;
+            }
+
             const data = {
-                subject: document.getElementById('subject').value,
+                subject: subjectName,
                 total_pages: parseInt(document.getElementById('total_pages').value),
                 days_left: parseInt(document.getElementById('days_left').value),
                 concentration: parseInt(document.getElementById('concentration').value)
             };
-            
-            totalTargetPages = data.total_pages;
 
             const response = await fetch('/generate-plan', {
                 method: 'POST',
@@ -91,23 +99,51 @@
                 body: JSON.stringify(data)
             });
             const result = await response.json();
-            
-            // 전략 문구 노출
-            document.getElementById('strategy-card').style.display = 'block';
-            document.getElementById('strategy-title').innerText = result.strategy.title;
-            document.getElementById('strategy-tip').innerText = result.strategy.tip;
-            document.getElementById('progress-container').style.display = 'block';
 
-            currentPlan = result.plan.map(d => ({ ...d, status: 'none', actual: 0 }));
+            // 신규 과목 데이터 생성
+            subjects[subjectName] = {
+                plan: result.plan.map(d => ({ ...d, status: 'none', actual: 0 })),
+                strategy: result.strategy,
+                totalTarget: data.total_pages,
+                progress: 0
+            };
+
+            switchTab(subjectName);
+            renderTabs();
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('subject-tabs');
+            container.innerHTML = '';
+            Object.keys(subjects).forEach(name => {
+                const sub = subjects[name];
+                const tab = document.createElement('div');
+                tab.className = `tab ${name === activeSubject ? 'active' : ''}`;
+                tab.innerHTML = `${name} <span class="tab-progress">${sub.progress}%</span>`;
+                tab.onclick = () => switchTab(name);
+                container.appendChild(tab);
+            });
+        }
+
+        function switchTab(name) {
+            activeSubject = name;
+            document.getElementById('active-content').style.display = 'block';
+            
+            const sub = subjects[name];
+            document.getElementById('strategy-title').innerText = sub.strategy.title;
+            document.getElementById('strategy-tip').innerText = sub.strategy.tip;
+            
             updateProgress();
             renderUI();
+            renderTabs();
         }
 
         function renderUI() {
             if (calendar) calendar.destroy();
+            const sub = subjects[activeSubject];
             calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-                initialView: 'dayGridMonth', height: 400,
-                events: currentPlan.map(d => ({ 
+                initialView: 'dayGridMonth', height: 350,
+                events: sub.plan.map(d => ({ 
                     title: d.study, start: d.date, 
                     color: d.status === 'o' ? '#48BB78' : d.status === 'tri' ? '#F6AD55' : d.status === 'x' ? '#F56565' : (d.study.includes("휴식") ? '#CBD5E0' : '#4A90E2')
                 }))
@@ -118,78 +154,70 @@
 
         function renderList() {
             let html = '';
-            currentPlan.forEach((day, index) => {
+            const sub = subjects[activeSubject];
+            sub.plan.forEach((day, index) => {
                 const s = day.status;
-                const cardClass = s === 'o' ? 'status-o' : s === 'tri' ? 'status-tri' : s === 'x' ? 'status-x' : '';
                 const mark = s === 'o' ? '○' : s === 'tri' ? '△' : s === 'x' ? '×' : '';
-                
                 html += `
-                    <div class="day-card ${cardClass}">
-                        <div class="status-mark">${mark}</div>
-                        <div style="font-size:0.85em; color:#718096;">Day ${day.day} | ${day.date}</div>
-                        <div style="margin:10px 0; font-weight:bold;">목표: ${day.study}</div>
-                        <div class="btn-group" id="btns-${index}" style="display: ${s === 'none' && !day.study.includes("휴식") ? 'flex' : 'none'}">
+                    <div class="day-card ${s !== 'none' ? 'status-'+s : ''}">
+                        <div style="font-size:0.8em; color:#718096;">${day.date} [${mark}]</div>
+                        <div style="margin:5px 0; font-weight:bold;">${day.study}</div>
+                        <div class="btn-group" style="display: ${s === 'none' && !day.study.includes("휴식") ? 'flex' : 'none'}">
                             <button style="background:var(--success)" onclick="confirmStatus(${index}, 'o')">완료</button>
                             <button style="background:var(--warning)" onclick="toggleInput(${index})">일부</button>
                             <button style="background:var(--danger)" onclick="confirmStatus(${index}, 'x')">미달</button>
                         </div>
                         <div id="input-box-${index}" class="update-input">
-                            <input type="number" id="actual-${index}" placeholder="공부량" style="width:100px; padding:5px;">
-                            <button onclick="confirmPartial(${index})" style="width:60px; padding:7px; background:var(--primary); margin-left:5px;">확인</button>
+                            <input type="number" id="actual-${index}" placeholder="공부량" style="width:70px; padding:5px;">
+                            <button onclick="confirmPartial(${index})" style="background:var(--primary); width:50px; padding:5px;">확인</button>
                         </div>
                     </div>`;
             });
             document.getElementById('result').innerHTML = html;
         }
 
-        function toggleInput(index) {
-            document.getElementById(`input-box-${index}`).style.display = 'block';
-        }
+        function toggleInput(index) { document.getElementById(`input-box-${index}`).style.display = 'block'; }
 
         function confirmStatus(index, status) {
-            const target = parseInt(currentPlan[index].study.replace(/[^0-9]/g, "")) || 0;
-            if (status === 'o') {
-                currentPlan[index].actual = target;
-                applyChange(index, 'o', 0);
-            } else {
-                currentPlan[index].actual = 0;
-                applyChange(index, 'x', target);
-            }
+            const sub = subjects[activeSubject];
+            const target = parseInt(sub.plan[index].study.replace(/[^0-9]/g, "")) || 0;
+            if (status === 'o') { sub.plan[index].actual = target; applyChange(index, 'o', 0); }
+            else { sub.plan[index].actual = 0; applyChange(index, 'x', target); }
         }
 
         function confirmPartial(index) {
-            const target = parseInt(currentPlan[index].study.replace(/[^0-9]/g, "")) || 0;
+            const sub = subjects[activeSubject];
+            const target = parseInt(sub.plan[index].study.replace(/[^0-9]/g, "")) || 0;
             const actual = parseInt(document.getElementById(`actual-${index}`).value) || 0;
-            currentPlan[index].actual = actual;
+            sub.plan[index].actual = actual;
             applyChange(index, 'tri', Math.max(0, target - actual));
         }
 
         function applyChange(index, status, missed) {
-            currentPlan[index].status = status;
-            if (missed > 0) redistribute(index, missed);
+            const sub = subjects[activeSubject];
+            sub.plan[index].status = status;
+            if (missed > 0) {
+                const remaining = sub.plan.slice(index + 1);
+                if (remaining.length > 0) {
+                    const extra = Math.floor(missed / remaining.length);
+                    const rem = missed % remaining.length;
+                    for (let i = index + 1; i < sub.plan.length; i++) {
+                        let curVal = parseInt(sub.plan[i].study.replace(/[^0-9]/g, "")) || 0;
+                        sub.plan[i].study = (curVal + extra + (i - index <= rem ? 1 : 0)) + "p";
+                    }
+                }
+            }
             updateProgress();
             renderUI();
         }
 
-        function redistribute(currentIndex, missedPages) {
-            const remaining = currentPlan.slice(currentIndex + 1);
-            if (remaining.length === 0) return;
-            const extra = Math.floor(missedPages / remaining.length);
-            const remainder = missedPages % remaining.length;
-            let distributed = 0;
-            for (let i = currentIndex + 1; i < currentPlan.length; i++) {
-                let currentVal = parseInt(currentPlan[i].study.replace(/[^0-9]/g, "")) || 0;
-                let bonus = (distributed < remainder) ? 1 : 0;
-                currentPlan[i].study = (currentVal + extra + bonus) + "p";
-                distributed++;
-            }
-        }
-
         function updateProgress() {
-            const totalActual = currentPlan.reduce((acc, day) => acc + (day.actual || 0), 0);
-            const percent = Math.min(100, Math.round((totalActual / totalTargetPages) * 100));
-            document.getElementById('progress-bar').style.width = percent + '%';
-            document.getElementById('progress-text').innerText = `현재 진행도: ${percent}% (${totalActual} / ${totalTargetPages}p)`;
+            const sub = subjects[activeSubject];
+            const totalActual = sub.plan.reduce((acc, d) => acc + (d.actual || 0), 0);
+            sub.progress = Math.min(100, Math.round((totalActual / sub.totalTarget) * 100));
+            document.getElementById('progress-bar').style.width = sub.progress + '%';
+            document.getElementById('progress-text').innerText = `${sub.progress}% (${totalActual}/${sub.totalTarget}p)`;
+            renderTabs();
         }
     </script>
 </body>

@@ -3,55 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 연구원 플래너</title>
-    <!-- FullCalendar CSS -->
+    <title>AI 피드백 플래너</title>
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'></script>
     <style>
-        :root { --primary: #4A90E2; --bg: #F8FAFC; --card: #FFFFFF; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; background: var(--card); padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        :root { --primary: #4A90E2; --success: #48BB78; --bg: #F8FAFC; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); padding: 20px; color: #2D3748; }
+        .container { max-width: 900px; margin: 0 auto; background: #FFF; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .input-box { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        input, select, button { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #E2E8F0; font-size: 14px; box-sizing: border-box; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; grid-column: span 2; margin-top: 10px; }
+        input, select, button { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #E2E8F0; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; grid-column: span 2; }
         
-        /* 전략 박스 스타일 */
         #strategy-box { display: none; background: #EEF6FF; border-left: 5px solid var(--primary); padding: 15px; border-radius: 8px; margin: 20px 0; }
-        #strategy-title { font-weight: bold; color: var(--primary); font-size: 1.1em; }
-        #strategy-tip { font-size: 0.9em; color: #4A5568; margin-top: 5px; }
+        
+        .day-card { border: 1px solid #EDF2F7; padding: 15px; border-radius: 12px; background: #FFF; transition: 0.3s; position: relative; }
+        .day-card.completed { background: #F0FFF4; border-color: var(--success); opacity: 0.8; }
+        
+        .todo-item { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        .todo-item input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+        
+        .fail-input { display: none; margin-top: 10px; font-size: 0.85em; }
+        .fail-input input { width: 60px; padding: 4px; display: inline; }
 
-        /* 달력 스타일 */
-        #calendar { margin-top: 30px; border: 1px solid #E2E8F0; padding: 15px; border-radius: 15px; background: #FFF; }
-        .fc-event { cursor: pointer; font-size: 0.85em; padding: 2px; }
-
-        .plan-list { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .day-card { border: 1px solid #EDF2F7; padding: 15px; border-radius: 12px; background: #FFF; }
-        .progress-bar { background: #EDF2F7; height: 6px; border-radius: 3px; margin: 10px 0; overflow: hidden; }
-        .progress-fill { background: var(--primary); height: 100%; transition: width 0.5s; }
-        .badge { display: inline-block; padding: 2px 6px; background: #EBF8FF; color: #2B6CB0; border-radius: 4px; font-size: 11px; margin: 2px; }
+        #calendar { margin-top: 30px; margin-bottom: 30px; }
+        .plan-list { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2 style="text-align: center; color: #2D3748;">📅 AI 맞춤형 학습 엔진</h2>
+        <h2 style="text-align: center;">🔄 피드백 기반 AI 플래너</h2>
         
         <div class="input-box">
-            <div><label>과목</label><input type="text" id="subject" value="물리학 실험 연구"></div>
-            <div><label>총 분량</label><input type="number" id="total_pages" value="100"></div>
-            <div><label>남은 기간(일)</label><input type="number" id="days_left" value="7"></div>
-            <div><label>오늘의 집중도</label>
+            <div><label>과목</label><input type="text" id="subject" value="연구 프로젝트"></div>
+            <div><label>총 페이지</label><input type="number" id="total_pages" value="100"></div>
+            <div><label>기간(일)</label><input type="number" id="days_left" value="7"></div>
+            <div><label>집중도</label>
                 <select id="concentration">
-                    <option value="10">최상 (몰입 모드)</option>
-                    <option value="7" selected>보통 (꾸준함)</option>
-                    <option value="4">낮음 (짧은 집중)</option>
+                    <option value="10">최상 (단기집중)</option>
+                    <option value="7" selected>보통 (표준)</option>
+                    <option value="4">낮음 (천천히)</option>
                 </select>
             </div>
-            <button onclick="generatePlan()">분석 및 계획 생성</button>
+            <button onclick="generatePlan()">새 계획 생성</button>
         </div>
 
         <div id="strategy-box">
-            <div id="strategy-title"></div>
-            <div id="strategy-tip"></div>
+            <div id="strategy-title" style="font-weight:bold; color:var(--primary);"></div>
+            <div id="strategy-tip" style="font-size:0.9em; margin-top:5px;"></div>
         </div>
 
         <div id="calendar"></div>
@@ -60,6 +58,7 @@
 
     <script>
         let calendar;
+        let currentPlan = [];
 
         async function generatePlan() {
             const data = {
@@ -75,43 +74,88 @@
                 body: JSON.stringify(data)
             });
             const result = await response.json();
+            currentPlan = result.plan;
+            
+            renderUI(result);
+        }
 
-            // 1. 학습 전략 표시
+        function renderUI(result) {
+            // 전략 표시
             document.getElementById('strategy-box').style.display = 'block';
             document.getElementById('strategy-title').innerText = result.strategy.title;
             document.getElementById('strategy-tip').innerText = result.strategy.tip;
 
-            // 2. 달력 렌더링
-            if (calendar) { calendar.destroy(); }
-            const calendarEl = document.getElementById('calendar');
-            calendar = new FullCalendar.Calendar(calendarEl, {
+            // 달력 초기화
+            if (calendar) calendar.destroy();
+            calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
                 initialView: 'dayGridMonth',
-                height: 450,
-                events: result.plan.map(d => ({
-                    title: `📖 ${d.study}`,
-                    start: d.date,
-                    backgroundColor: '#4A90E2',
-                    borderColor: '#4A90E2'
-                }))
+                height: 400,
+                events: currentPlan.map(d => ({ title: d.study, start: d.date, color: d.study === '휴식' ? '#CBD5E0' : '#4A90E2' }))
             });
             calendar.render();
 
-            // 3. 리스트 상세 표시
+            renderList();
+        }
+
+        function renderList() {
             let html = '';
-            result.plan.forEach(day => {
-                const reviews = day.review.map(r => `<span class="badge">♻️ ${r}</span>`).join('');
+            currentPlan.forEach((day, index) => {
+                const isDone = day.completed ? 'completed' : '';
+                const isChecked = day.completed ? 'checked' : '';
+                
                 html += `
-                    <div class="day-card">
-                        <div style="display:flex; justify-content:space-between; font-size:0.9em; font-weight:bold;">
-                            <span>Day ${day.day}</span>
-                            <span style="color:#718096;">${day.date}</span>
+                    <div class="day-card ${isDone}" id="card-${index}">
+                        <div style="display:flex; justify-content:space-between; font-size:0.85em;">
+                            <b>Day ${day.day}</b> <span>${day.date}</span>
                         </div>
-                        <div class="progress-bar"><div class="progress-fill" style="width:${day.progress}%"></div></div>
-                        <div style="font-size:0.85em; color:#4A5568;">진도: <b>${day.study}</b></div>
-                        <div style="margin-top:8px;">${reviews || '<span style="font-size:0.8em; color:#CBD5E0;">복습 없음</span>'}</div>
+                        <div class="todo-item">
+                            <input type="checkbox" ${isChecked} onchange="toggleComplete(${index})">
+                            <span>오늘 목표: <b>${day.study}</b></span>
+                        </div>
+                        <div id="fail-${index}" class="fail-input" style="display: ${!day.completed && index < currentPlan.length-1 ? 'block' : 'none'}">
+                            실제 공부한 페이지: <input type="number" id="actual-${index}" placeholder="0" onchange="recalculate(${index})"> p
+                        </div>
+                        <div style="margin-top:5px; font-size:0.8em; color:#718096;">
+                            복습: ${day.review.join(', ') || '없음'}
+                        </div>
                     </div>`;
             });
             document.getElementById('result').innerHTML = html;
+        }
+
+        function toggleComplete(index) {
+            currentPlan[index].completed = !currentPlan[index].completed;
+            renderList();
+        }
+
+        function recalculate(index) {
+            const studyStr = currentPlan[index].study;
+            if (studyStr === "휴식 및 보충") return;
+
+            const targetPages = parseInt(studyStr);
+            const actualPages = parseInt(document.getElementById(`actual-${index}`).value) || 0;
+            const missedPages = targetPages - actualPages;
+
+            if (missedPages > 0 && index < currentPlan.length - 1) {
+                alert(`${missedPages}p를 다음 일정으로 넘깁니다.`);
+                
+                // 다음 날짜들로 부족한 페이지 분배 (정수 처리)
+                let remainingDays = 0;
+                for(let i=index+1; i<currentPlan.length; i++) {
+                    if(currentPlan[i].study !== "휴식 및 보충") remainingDays++;
+                }
+
+                if (remainingDays > 0) {
+                    const extra = Math.ceil(missedPages / remainingDays);
+                    for(let i=index+1; i<currentPlan.length; i++) {
+                        if(currentPlan[i].study !== "휴식 및 보충") {
+                            const currentVal = parseInt(currentPlan[i].study);
+                            currentPlan[i].study = (currentVal + extra) + "p";
+                        }
+                    }
+                }
+                renderUI({strategy: {title: "🔄 계획 수정됨", tip: "공부하지 못한 분량이 다음 일정들에 고르게 분배되었습니다."}, plan: currentPlan});
+            }
         }
     </script>
 </body>

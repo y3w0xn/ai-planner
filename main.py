@@ -1,13 +1,12 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from datetime import datetime, timedelta
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import os
+import math
 
 app = FastAPI()
 
-# HTML 파일을 불러오기 위한 경로 설정
 @app.get("/")
 async def read_index():
     return FileResponse('index.html')
@@ -18,58 +17,57 @@ class StudyTask(BaseModel):
     days_left: int
     concentration: int
 
-# main.py의 로직 부분만 이렇게 수정해 보세요
-
 @app.post("/generate-plan")
 async def create_plan(task: StudyTask):
-    daily_pages = task.total_pages / task.days_left
     plan = []
-    total_progress = 0
     
+    # 1. 집중도에 따른 실제 '공부 수행 일수' 결정
+    # 최상: 기간의 60%만 사용(몰입), 보통: 80%, 낮음: 100%(천천히)
     if task.concentration >= 9:
-        strategy = {
-            "title": "🚀 고효율 전략: '장기 기억' 전환 모드",
-            "tip": "이미 이해도가 높으므로 7일 전 내용만 가볍게 훑으세요. 남는 에너지는 오늘 진도의 '심화 학습'에 쏟으십시오.",
-            "review_intervals": [7] # 최상일 땐 굳이 어제껄 볼 필요 없음 (장기 기억 강화)
-        }
+        active_days_count = max(1, math.ceil(task.days_left * 0.6))
+        strategy = {"title": "⚡ 초몰입 단기 완성", "tip": "에너지가 높을 때 몰아칩니다. 남은 기간의 절반은 자유시간입니다!"}
     elif task.concentration >= 6:
-        strategy = {
-            "title": "⚖️ 표준 전략: '중요 지점' 복습 모드",
-            "tip": "어제 내용과 3일 전 내용을 복습하세요. 이 주기가 망각을 막는 가장 효율적인 구간입니다.",
-            "review_intervals": [1, 3] # 표준 주기는 2개로 제한
-        }
+        active_days_count = max(1, math.ceil(task.days_left * 0.8))
+        strategy = {"title": "📅 선택과 집중 모드", "tip": "주말이나 특정 일을 쉬기 위해 주중에 집중적으로 배분했습니다."}
     else:
-        strategy = {
-            "title": "🐢 생존 전략: '직전 내용' 사수 모드",
-            "tip": "복습이 밀리면 의욕이 꺾입니다. 오늘은 오직 '어제 배운 것'만 복습하고 나머지는 과감히 버리세요!",
-            "review_intervals": [1] # 낮을 땐 단 하나만 제대로 복습
-        }
+        active_days_count = task.days_left
+        strategy = {"title": "🧘 슬로우 페이스 모드", "tip": "부담을 최소화하기 위해 매일 조금씩 꾸준히 나아갑니다."}
+
+    # 2. 정수 페이지 배분 알고리즘
+    base_pages = task.total_pages // active_days_count
+    extra_pages = task.total_pages % active_days_count
+    
+    current_progress = 0
+    day_counter = 0
 
     for i in range(task.days_left):
         current_date = datetime.now() + timedelta(days=i)
         
-        # [핵심] 집중도에 따라 설정된 간격 중 '가장 중요한 것'만 추출
-        reviews = []
-        for interval in strategy["review_intervals"]:
-            if i >= interval:
-                reviews.append(f"{i - interval + 1}일차")
-        
-        # 만약 복습이 너무 많아지면 최근 2개만 남김 (안전장치)
-        reviews = reviews[-2:] 
+        # 공부하는 날인지 판단 (앞쪽에 공부를 몰아넣음)
+        if day_counter < active_days_count:
+            # 마지막 공부 날에 남은 페이지 올림 처리
+            pages_today = base_pages + (1 if day_counter < extra_pages else 0)
+            study_msg = f"{pages_today}p"
+            current_progress += (pages_today / task.total_pages) * 100
+            
+            # 복습 로직 (가장 중요한 직전 공부일 것만)
+            reviews = [f"{day_counter}일차 내용"] if day_counter > 0 else []
+            day_counter += 1
+        else:
+            study_msg = "휴식 및 보충"
+            reviews = ["밀린 부분 검토"]
 
-        total_progress += (100 / task.days_left)
         plan.append({
             "day": i + 1,
             "date": current_date.strftime("%Y-%m-%d"),
-            "study": f"{round(daily_pages, 1)}p",
+            "study": study_msg,
             "review": reviews,
-            "progress": min(100, round(total_progress, 1))
+            "progress": min(100, round(current_progress, 1))
         })
         
     return {"subject": task.subject, "strategy": strategy, "plan": plan}
 
 if __name__ == "__main__":
     import uvicorn
-    # 배포 환경(Render)을 위해 포트 설정을 유동적으로 변경
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)

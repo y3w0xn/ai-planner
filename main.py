@@ -1,10 +1,16 @@
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from datetime import datetime, timedelta
-import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+import os
 
 app = FastAPI()
+
+# HTML 파일을 불러오기 위한 경로 설정
+@app.get("/")
+async def read_index():
+    return FileResponse('index.html')
 
 class StudyTask(BaseModel):
     subject: str
@@ -12,46 +18,41 @@ class StudyTask(BaseModel):
     days_left: int
     concentration: int
 
-import os
-
-@app.get("/", response_class=HTMLResponse)
-async def read_root():
-    # 현재 실행 중인 main.py 파일의 폴더 경로를 가져옵니다.
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_path, "index.html")
-    
-    try:
-        with open(file_path, encoding="utf-8") as f:
-            return f.read()
-    except FileNotFoundError:
-        return "<h1>에러: index.html 파일을 찾을 수 없습니다! 파일이 미소강 폴더 안에 있는지 확인하세요.</h1>"
-
-# main.py의 create_plan 함수 부분을 아래와 같이 수정해보세요.
-
 @app.post("/generate-plan")
 async def create_plan(task: StudyTask):
-    # 집중도(concentration)를 가중치로 활용
-    # 10(높음) -> 분량 그대로, 4(낮음) -> 복습 주기를 더 촘촘하게 설정
-    
     daily_pages = task.total_pages / task.days_left
     plan = []
     total_progress = 0
     
+    # 1. 집중도별 맞춤 학습 전략 메시지 & 복습 주기 설정
+    if task.concentration >= 9:
+        strategy = {
+            "title": "🚀 고효율 파고들기 모드",
+            "tip": "딥러닝 논문이나 물리 수식 유도처럼 깊은 사고가 필요한 공부에 최적입니다. 50분 집중 후 10분 휴식하는 뽀모도로 기법을 추천합니다.",
+            "review_intervals": [3, 7] # 고집중은 복습 주기를 큼직하게
+        }
+    elif task.concentration >= 6:
+        strategy = {
+            "title": "⚖️ 꾸준한 밸런스 모드",
+            "tip": "진도와 복습의 비율을 7:3으로 유지하세요. 아는 내용을 백지에 써보는 '능동적 회상'법이 가장 효과적입니다.",
+            "review_intervals": [1, 3, 7] # 표준 주기
+        }
+    else:
+        strategy = {
+            "title": "🐢 거북이 스파르타 모드",
+            "tip": "집중력이 낮을 땐 '분량'보다 '완성도'입니다. 20분 공부 후 5분 휴식하며, 복습이 벅차면 '어제 내용'만이라도 완벽히 보세요.",
+            "review_intervals": [1, 2] # 부하를 줄이기 위해 짧은 주기만 반복
+        }
+
+    # 2. 날짜별 계획 생성
     for i in range(task.days_left):
         current_date = datetime.now() + timedelta(days=i)
         
-        # 집중도 스타일에 따른 복습 주기 설정
-        if task.concentration >= 9:
-            review_intervals = [3, 7] # 고집중: 굵직하게 복습
-        elif task.concentration >= 6:
-            review_intervals = [1, 3, 7] # 보통: 표준 주기
-        else:
-            review_intervals = [1, 2, 3, 5, 7] # 낮음: 망각 방지를 위해 아주 자주 복습
-
+        # 복습 항목 계산
         reviews = []
-        for interval in review_intervals:
+        for interval in strategy["review_intervals"]:
             if i >= interval:
-                reviews.append(f"{i - interval + 1}일차 내용")
+                reviews.append(f"{i - interval + 1}일차")
 
         total_progress += (100 / task.days_left)
         
@@ -63,10 +64,14 @@ async def create_plan(task: StudyTask):
             "progress": min(100, round(total_progress, 1))
         })
         
-    return {"subject": task.subject, "plan": plan}
+    return {
+        "subject": task.subject,
+        "strategy": strategy,
+        "plan": plan
+    }
 
-# 이 부분이 핵심입니다! 터미널 명령어 없이도 실행되게 해줘요.
 if __name__ == "__main__":
     import uvicorn
-    # log_level="info"를 넣어 서버 상태를 더 자세히 봅니다.
-    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")
+    # 배포 환경(Render)을 위해 포트 설정을 유동적으로 변경
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

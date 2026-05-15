@@ -3,60 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 통합 연구 플래너 Pro</title>
+    <title>AI 연구 통합 매니저 Pro</title>
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'></script>
     <style>
         :root { --primary: #4A90E2; --success: #48BB78; --warning: #F6AD55; --danger: #F56565; --bg: #F8FAFC; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); padding: 20px; color: #2D3748; }
-        .container { max-width: 1100px; margin: 0 auto; background: #FFF; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); padding: 20px; color: #2D3748; line-height: 1.5; }
+        .container { max-width: 1200px; margin: 0 auto; background: #FFF; padding: 30px; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
         
-        /* 탭 디자인 */
-        .subject-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 2px solid #E2E8F0; padding-bottom: 10px; }
-        .tab { padding: 10px 15px; background: #EDF2F7; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        /* 탭 관리 */
+        .subject-tabs { display: flex; gap: 8px; margin-bottom: 25px; flex-wrap: wrap; border-bottom: 2px solid #E2E8F0; padding-bottom: 10px; }
+        .tab { padding: 10px 16px; background: #EDF2F7; border-radius: 10px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
         .tab.active { background: var(--primary); color: white; }
         .tab-all { background: #2D3748 !important; color: white !important; }
-        .btn-edit-sub { font-size: 0.8rem; opacity: 0.6; }
 
-        .input-box { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 30px; padding: 20px; background: #F7FAFC; border-radius: 15px; border: 1px dashed #CBD5E0; }
-        input, select, button { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #E2E8F0; }
-        .btn-main { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; grid-column: span 2; padding: 15px; }
+        .input-box { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 30px; padding: 25px; background: #F7FAFC; border-radius: 18px; border: 1px dashed #CBD5E0; }
+        input, select, button { padding: 10px; border-radius: 8px; border: 1px solid #E2E8F0; font-family: inherit; }
+        .btn-main { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; grid-column: span 2; padding: 15px; font-size: 1rem; }
         
-        .strategy-card { background: #EBF8FF; padding: 15px; border-radius: 12px; margin-bottom: 20px; border-left: 5px solid var(--primary); position: relative; }
-        .btn-delete-sub { position: absolute; top: 10px; right: 10px; background: var(--danger); color: white; padding: 5px 10px; font-size: 0.7rem; border-radius: 5px; cursor: pointer; border: none; }
+        .strategy-card { background: #EBF8FF; padding: 20px; border-radius: 15px; margin-bottom: 20px; border-left: 6px solid var(--primary); position: relative; }
+        .btn-delete-sub { position: absolute; top: 15px; right: 15px; background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; }
 
-        .progress-container { margin: 15px 0; background: #EDF2F7; border-radius: 20px; height: 20px; overflow: hidden; position: relative; }
-        .progress-bar { background: linear-gradient(90deg, #4299E1, #48BB78); height: 100%; width: 0%; transition: 0.5s; }
-        .progress-text { position: absolute; width: 100%; text-align: center; font-size: 0.75rem; font-weight: bold; line-height: 20px; }
+        .progress-container { margin: 20px 0; background: #EDF2F7; border-radius: 25px; height: 24px; overflow: hidden; position: relative; }
+        .progress-bar { background: linear-gradient(90deg, #4299E1, #48BB78); height: 100%; width: 0%; transition: 0.6s ease-in-out; }
+        .progress-text { position: absolute; width: 100%; text-align: center; font-size: 0.8rem; font-weight: bold; line-height: 24px; }
 
-        .plan-list { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .day-card { border: 1px solid #EDF2F7; padding: 15px; border-radius: 12px; background: #FFF; position: relative; }
-        .status-o { background: #F0FFF4; border-color: var(--success); }
-        .status-tri { background: #FFFAF0; border-color: var(--warning); }
-        .status-x { background: #FFF5F5; border-color: var(--danger); }
+        .plan-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .day-card { border: 1px solid #EDF2F7; padding: 20px; border-radius: 16px; background: #FFF; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .status-o { border-color: var(--success); background: #F0FFF4; }
+        .status-tri { border-color: var(--warning); background: #FFFAF0; }
+        .status-x { border-color: var(--danger); background: #FFF5F5; }
         
-        .goal-input { font-weight: bold; width: 80px; padding: 2px; border: 1px solid #CBD5E0; border-radius: 4px; }
-        .btn-exclude { background: #718096; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.7rem; padding: 2px 6px; }
-        
-        #calendar { margin-bottom: 30px; background: white; padding: 10px; border-radius: 10px; border: 1px solid #E2E8F0; }
-        .update-input { display: none; margin-top: 10px; }
-        .btn-group { display: flex; gap: 4px; margin-top: 10px; }
-        .btn-group button { padding: 5px; font-size: 0.7rem; cursor: pointer; color: white; border: none; }
+        /* To-Do 스타일 */
+        .todo-section { margin-top: 15px; padding-top: 15px; border-top: 1px solid #E2E8F0; }
+        .todo-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.9rem; }
+        .todo-item input[type="checkbox"] { width: auto; }
+        .todo-text.done { text-decoration: line-through; color: #A0AEC0; }
+        .btn-todo-del { margin-left: auto; color: var(--danger); cursor: pointer; font-size: 0.7rem; border: none; background: none; }
+        .todo-input-group { display: flex; gap: 5px; margin-top: 10px; }
+        .todo-input-group input { flex: 1; padding: 6px; font-size: 0.85rem; }
+        .btn-todo-add { background: #718096; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
+
+        #calendar { margin-bottom: 30px; background: white; padding: 15px; border-radius: 15px; border: 1px solid #E2E8F0; }
+        .btn-group { display: flex; gap: 5px; margin-top: 12px; }
+        .btn-group button { flex: 1; font-size: 0.75rem; cursor: pointer; color: white; border: none; border-radius: 6px; padding: 8px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2 style="text-align: center;">🔬 AI 통합 연구 플래너 Pro</h2>
+        <h2 style="text-align: center; margin-bottom: 30px;">🔬 AI 연구 통합 매니저 Pro</h2>
         
         <div class="input-box">
-            <div><label>과목명</label><input type="text" id="subject" placeholder="예: 물리학 실험"></div>
-            <div><label>총 페이지</label><input type="number" id="total_pages" value="100"></div>
-            <div><label>기간(일)</label><input type="number" id="days_left" value="7"></div>
+            <div><label>연구 과목명</label><input type="text" id="subject" placeholder="예: CNN 알고리즘 연구"></div>
+            <div><label>총 분량 (페이지)</label><input type="number" id="total_pages" value="100"></div>
+            <div><label>남은 기간 (일)</label><input type="number" id="days_left" value="7"></div>
             <div><label>집중도</label>
                 <select id="concentration">
-                    <option value="10">최상 (단기완성)</option>
+                    <option value="10">최상 (단기집중)</option>
                     <option value="7" selected>보통 (균형)</option>
-                    <option value="4">낮음 (천천히)</option>
+                    <option value="4">낮음 (여유있게)</option>
                 </select>
             </div>
             <button class="btn-main" id="submit-btn" onclick="generatePlan()">새로운 과목 플랜 추가</button>
@@ -83,7 +88,7 @@
 
     <script>
         let subjects = {}; 
-        let activeSubject = null; // 'all'인 경우 통합 보기
+        let activeSubject = null;
         let calendar;
         const colorPalette = ['#4A90E2', '#48BB78', '#F6AD55', '#9F7AEA', '#ED64A6', '#667EEA'];
 
@@ -91,12 +96,10 @@
             const subjectName = document.getElementById('subject').value;
             if(!subjectName) return alert("과목명을 입력하세요");
             
-            if(activeSubject !== 'all' && activeSubject && subjects[activeSubject] && document.getElementById('submit-btn').innerText.includes("수정")) {
-                const oldColor = subjects[activeSubject].color;
+            let targetColor = colorPalette[Object.keys(subjects).length % colorPalette.length];
+            if(activeSubject && activeSubject !== 'all' && document.getElementById('submit-btn').innerText.includes("수정")) {
+                targetColor = subjects[activeSubject].color;
                 delete subjects[activeSubject];
-                var targetColor = oldColor;
-            } else {
-                var targetColor = colorPalette[Object.keys(subjects).length % colorPalette.length];
             }
 
             const data = {
@@ -114,7 +117,7 @@
             const result = await response.json();
 
             subjects[subjectName] = {
-                plan: result.plan.map(d => ({ ...d, status: 'none', actual: 0 })),
+                plan: result.plan.map(d => ({ ...d, status: 'none', actual: 0, todos: [] })),
                 strategy: result.strategy,
                 totalTarget: data.total_pages,
                 progress: 0,
@@ -136,10 +139,9 @@
             const container = document.getElementById('subject-tabs');
             container.innerHTML = '';
             
-            // [전체 보기] 탭 고정
             const allTab = document.createElement('div');
             allTab.className = `tab tab-all ${activeSubject === 'all' ? 'active' : ''}`;
-            allTab.innerHTML = `🗓️ 전체 보기`;
+            allTab.innerHTML = `🗓️ 전체 통합 보기`;
             allTab.onclick = () => switchTab('all');
             container.appendChild(allTab);
 
@@ -147,7 +149,7 @@
                 const tab = document.createElement('div');
                 tab.className = `tab ${name === activeSubject ? 'active' : ''}`;
                 tab.style.borderLeft = `5px solid ${subjects[name].color}`;
-                tab.innerHTML = `${name} <span class="btn-edit-sub" onclick="editSubjectConfig('${name}')">⚙️</span>`;
+                tab.innerHTML = `${name} <span style="font-size:0.7rem; opacity:0.7;">(${subjects[name].progress}%)</span> <span class="btn-edit-sub" onclick="editSubjectConfig('${name}')">⚙️</span>`;
                 tab.onclick = (e) => { if(!e.target.classList.contains('btn-edit-sub')) switchTab(name); };
                 container.appendChild(tab);
             });
@@ -173,14 +175,14 @@
             renderTabs();
         }
 
-        // 단일 과목 달력
         function renderSingleUI() {
             if (calendar) calendar.destroy();
             const sub = subjects[activeSubject];
             calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-                initialView: 'dayGridMonth', height: 450,
+                initialView: 'dayGridMonth', height: 500,
                 events: sub.plan.map(d => ({ 
-                    title: d.study, start: d.date, 
+                    title: `${d.study} ${d.todos.length > 0 ? '📝'+d.todos.length : ''}`, 
+                    start: d.date, 
                     color: d.status === 'o' ? '#48BB78' : d.status === 'tri' ? '#F6AD55' : d.status === 'x' ? '#F56565' : (d.study.includes("휴식") ? '#CBD5E0' : sub.color)
                 }))
             });
@@ -188,7 +190,6 @@
             renderList();
         }
 
-        // 통합 달력 (Dashboard)
         function renderCombinedUI() {
             if (calendar) calendar.destroy();
             let allEvents = [];
@@ -198,16 +199,22 @@
                     allEvents.push({
                         title: `[${name}] ${d.study}`,
                         start: d.date,
-                        color: d.status === 'o' ? '#E2E8F0' : sub.color, // 완료된 건 흐리게
+                        color: d.status === 'o' ? '#E2E8F0' : sub.color,
                         textColor: d.status === 'o' ? '#A0AEC0' : 'white'
+                    });
+                    d.todos.forEach(todo => {
+                        allEvents.push({
+                            title: `📌 ${todo.text}`,
+                            start: d.date,
+                            color: 'transparent',
+                            textColor: '#4A5568',
+                            display: 'list-item'
+                        });
                     });
                 });
             });
-
             calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-                initialView: 'dayGridMonth', height: 600,
-                events: allEvents,
-                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,dayGridWeek' }
+                initialView: 'dayGridMonth', height: 650, events: allEvents
             });
             calendar.render();
         }
@@ -217,28 +224,63 @@
             const sub = subjects[activeSubject];
             sub.plan.forEach((day, index) => {
                 const s = day.status;
+                const todoHtml = day.todos.map((t, ti) => `
+                    <div class="todo-item">
+                        <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTodo(${index}, ${ti})">
+                        <span class="todo-text ${t.done ? 'done' : ''}">${t.text}</span>
+                        <button class="btn-todo-del" onclick="deleteTodo(${index}, ${ti})">✕</button>
+                    </div>
+                `).join('');
+
                 html += `
                     <div class="day-card ${s !== 'none' ? 'status-'+s : ''}">
-                        <div style="font-size:0.8em; color:#718096;">${day.date} 
-                            <button class="btn-exclude" onclick="excludeDay(${index})">🚫 제외</button>
+                        <div style="font-size:0.85em; color:#718096; font-weight:bold;">${day.date} 
+                            <button class="btn-exclude" style="float:right" onclick="excludeDay(${index})">🚫 제외</button>
                         </div>
-                        <div style="margin:8px 0;">목표: <input type="text" class="goal-input" value="${day.study}" onchange="updateGoal(${index}, this.value)"></div>
+                        <div style="margin:12px 0;">배정: <input type="text" class="goal-input" style="width:100px" value="${day.study}" onchange="updateGoal(${index}, this.value)"></div>
+                        
                         <div class="btn-group" style="display: ${s === 'none' && !day.study.includes("휴식") ? 'flex' : 'none'}">
                             <button style="background:var(--success)" onclick="confirmStatus(${index}, 'o')">완료</button>
                             <button style="background:var(--warning)" onclick="toggleInput(${index})">일부</button>
                             <button style="background:var(--danger)" onclick="confirmStatus(${index}, 'x')">미달</button>
                         </div>
                         <div id="input-box-${index}" class="update-input">
-                            <input type="number" id="actual-${index}" placeholder="량" style="width:50px;">
-                            <button onclick="confirmPartial(${index})" style="background:var(--primary); color:white; width:40px; border:none; border-radius:4px;">OK</button>
+                            <input type="number" id="actual-${index}" placeholder="실제량" style="width:60px;">
+                            <button onclick="confirmPartial(${index})" style="background:var(--primary); color:white; border:none; padding:5px 10px; border-radius:4px;">OK</button>
+                        </div>
+
+                        <div class="todo-section">
+                            <div style="font-size:0.8rem; font-weight:bold; color:var(--primary); margin-bottom:8px;">📝 개인 투두리스트</div>
+                            ${todoHtml}
+                            <div class="todo-input-group">
+                                <input type="text" id="todo-in-${index}" placeholder="할 일 추가..." onkeypress="if(event.keyCode==13) addTodo(${index})">
+                                <button class="btn-todo-add" onclick="addTodo(${index})">추가</button>
+                            </div>
                         </div>
                     </div>`;
             });
             document.getElementById('result').innerHTML = html;
         }
 
-        function updateGoal(index, val) { subjects[activeSubject].plan[index].study = val; renderSingleUI(); }
+        /* To-Do Functions */
+        function addTodo(dayIdx) {
+            const input = document.getElementById(`todo-in-${dayIdx}`);
+            if(!input.value) return;
+            subjects[activeSubject].plan[dayIdx].todos.push({ text: input.value, done: false });
+            input.value = '';
+            renderSingleUI();
+        }
+        function toggleTodo(dayIdx, todoIdx) {
+            subjects[activeSubject].plan[dayIdx].todos[todoIdx].done = !subjects[activeSubject].plan[dayIdx].todos[todoIdx].done;
+            renderList();
+        }
+        function deleteTodo(dayIdx, todoIdx) {
+            subjects[activeSubject].plan[dayIdx].todos.splice(todoIdx, 1);
+            renderSingleUI();
+        }
 
+        /* Existing Functions (Maintained) */
+        function updateGoal(index, val) { subjects[activeSubject].plan[index].study = val; renderSingleUI(); }
         function excludeDay(index) {
             const sub = subjects[activeSubject];
             const missed = parseInt(sub.plan[index].study.replace(/[^0-9]/g, "")) || 0;
@@ -246,14 +288,12 @@
             if(missed > 0) redistribute(index, missed);
             renderSingleUI();
         }
-
         function confirmStatus(index, status) {
             const sub = subjects[activeSubject];
             const target = parseInt(sub.plan[index].study.replace(/[^0-9]/g, "")) || 0;
             if (status === 'o') { sub.plan[index].actual = target; applyChange(index, 'o', 0); }
             else { sub.plan[index].actual = 0; applyChange(index, 'x', target); }
         }
-
         function confirmPartial(index) {
             const sub = subjects[activeSubject];
             const target = parseInt(sub.plan[index].study.replace(/[^0-9]/g, "")) || 0;
@@ -261,7 +301,6 @@
             sub.plan[index].actual = actual;
             applyChange(index, 'tri', Math.max(0, target - actual));
         }
-
         function applyChange(index, status, missed) {
             const sub = subjects[activeSubject];
             sub.plan[index].status = status;
@@ -269,7 +308,6 @@
             updateProgress();
             renderSingleUI();
         }
-
         function redistribute(currentIndex, missedPages) {
             const sub = subjects[activeSubject];
             const remaining = sub.plan.slice(currentIndex + 1).filter(d => !d.study.includes("휴식"));
@@ -284,7 +322,6 @@
                 count++;
             }
         }
-
         function updateProgress() {
             const sub = subjects[activeSubject];
             const totalActual = sub.plan.reduce((acc, d) => acc + (d.actual || 0), 0);
@@ -293,25 +330,17 @@
             document.getElementById('progress-text').innerText = `${sub.progress}% (${totalActual}/${sub.totalTarget}p)`;
             renderTabs();
         }
-
-        function deleteSubject() {
-            if(confirm(`"${activeSubject}" 과목을 삭제하시겠습니까?`)) {
-                delete subjects[activeSubject];
-                switchTab('all');
-            }
-        }
-
+        function deleteSubject() { if(confirm(`"${activeSubject}" 삭제?`)) { delete subjects[activeSubject]; switchTab('all'); } }
         function editSubjectConfig(name) {
             const sub = subjects[name];
             document.getElementById('subject').value = name;
             document.getElementById('total_pages').value = sub.config.total_pages;
             document.getElementById('days_left').value = sub.config.days_left;
             document.getElementById('concentration').value = sub.config.concentration;
-            document.getElementById('submit-btn').innerText = `"${name}" 수정하기`;
+            document.getElementById('submit-btn').innerText = `"${name}" 정보 수정`;
             document.getElementById('submit-btn').style.background = "var(--warning)";
             window.scrollTo(0,0);
         }
-
         function toggleInput(index) { document.getElementById(`input-box-${index}`).style.display = 'block'; }
     </script>
 </body>

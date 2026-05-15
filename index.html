@@ -47,10 +47,10 @@
 </head>
 <body>
     <div class="container">
-        <h2 style="text-align: center; margin-bottom: 30px;">🔬 AI 연구 통합 매니저 Pro (Color Fix)</h2>
+        <h2 style="text-align: center; margin-bottom: 30px;">🔬 AI 연구 통합 매니저 Pro (Fixed Palette)</h2>
         
         <div class="input-box">
-            <div><label>연구 과목명</label><input type="text" id="subject" placeholder="예: 강화학습 논문"></div>
+            <div><label>연구 과목명</label><input type="text" id="subject" placeholder="예: 생명과학개론"></div>
             <div><label>총 분량 (페이지)</label><input type="number" id="total_pages" value="100"></div>
             <div><label>남은 기간 (일)</label><input type="number" id="days_left" value="7"></div>
             <div><label>집중도</label>
@@ -86,24 +86,33 @@
         let activeSubject = null;
         let calendar;
 
-        // [핵심 수정] 과목명을 기반으로 겹치지 않는 고유 색상 생성 로직
-        function stringToColor(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                hash = str.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            const h = Math.abs(hash % 360);
-            return `hsl(${h}, 70%, 50%)`; // 채도 70%, 밝기 50%로 선명한 색상 유지
-        }
+        // [핵심 수정] 겹치지 않는 고성능 팔레트 (10색)
+        const colorPalette = [
+            '#4A90E2', // Blue
+            '#F56565', // Red
+            '#48BB78', // Green
+            '#ED8936', // Orange
+            '#9F7AEA', // Purple
+            '#00B5AD', // Teal
+            '#D53F8C', // Pink
+            '#667EEA', // Indigo
+            '#ECC94B', // Yellow
+            '#2D3748'  // Dark Gray
+        ];
 
         async function generatePlan() {
             const subjectName = document.getElementById('subject').value;
             if(!subjectName) return alert("과목명을 입력하세요");
             
-            // 수정 시에는 기존 색상 유지, 신규 시에는 이름 기반 생성
-            let targetColor = stringToColor(subjectName);
+            let targetColor;
+            // 수정 모드일 때는 기존 색상 유지
             if(activeSubject && activeSubject !== 'all' && document.getElementById('submit-btn').innerText.includes("수정")) {
+                targetColor = subjects[activeSubject].color;
                 delete subjects[activeSubject];
+            } else {
+                // 신규 추가 시 순차적으로 배정
+                const colorIdx = Object.keys(subjects).length % colorPalette.length;
+                targetColor = colorPalette[colorIdx];
             }
 
             const data = {
@@ -147,8 +156,11 @@
                 const sub = subjects[name];
                 const tab = document.createElement('div');
                 tab.className = `tab ${name === activeSubject ? 'active' : ''}`;
-                tab.style.borderTopColor = sub.color; // 상단 바 색상 강조
-                if(name === activeSubject) tab.style.color = sub.color;
+                tab.style.borderTopColor = sub.color;
+                if(name === activeSubject) {
+                    tab.style.color = sub.color;
+                    tab.style.background = "#FFF";
+                }
                 
                 tab.innerHTML = `${name} <span style="font-size:0.7rem; opacity:0.7;">(${sub.progress}%)</span> <span class="btn-edit-sub" onclick="editSubjectConfig('${name}')">⚙️</span>`;
                 tab.onclick = (e) => { if(!e.target.classList.contains('btn-edit-sub')) switchTab(name); };
@@ -215,7 +227,6 @@
             calendar.render();
         }
 
-        /* --- 이하 기존 기능 로직 (동일하게 유지) --- */
         function renderList() {
             let html = '';
             const sub = subjects[activeSubject];
